@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CAiSEY — Student Feedback</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f5f5f5;
+      color: #1a1a1a;
+      min-height: 100vh;
+    }
+
+    .header {
+      background: #fff;
+      border-bottom: 1px solid #e5e5e5;
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .header-logo {
+      width: 36px; height: 36px;
+      background: #1a1a1a;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-weight: 700; font-size: 14px;
+    }
+    .header-title { font-size: 18px; font-weight: 600; }
+    .header-sub   { font-size: 13px; color: #888; margin-left: 4px; }
+
+    .container { max-width: 780px; margin: 0 auto; padding: 32px 24px 64px; }
+
+    .card {
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .card-label {
+      font-size: 12px; font-weight: 600; color: #888;
+      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px;
+    }
+
+    input[type="password"], textarea {
+      width: 100%;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 10px 13px;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    input[type="password"]:focus, textarea:focus { border-color: #1a1a1a; }
+    input[type="password"] { font-family: monospace; }
+    textarea { min-height: 220px; resize: vertical; line-height: 1.6; }
+    textarea::placeholder { color: #bbb; }
+
+    .api-hint { font-size: 12px; color: #aaa; margin-top: 8px; }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: #1a1a1a; color: #fff;
+      border: none; border-radius: 8px;
+      padding: 11px 22px; font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: background 0.15s;
+      margin-top: 14px;
+    }
+    .btn:hover:not(:disabled) { background: #333; }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .spinner {
+      width: 15px; height: 15px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: inline-block;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error-box {
+      background: #fef2f2; border: 1px solid #fca5a5;
+      border-radius: 8px; padding: 14px 16px;
+      font-size: 14px; color: #b91c1c; margin-bottom: 24px;
+    }
+
+    /* Results */
+    .results-card {
+      background: #fff; border: 1px solid #e5e5e5;
+      border-radius: 12px; overflow: hidden;
+    }
+
+    .domain-banner {
+      padding: 24px; border-bottom: 1px solid #f0f0f0;
+      display: flex; align-items: flex-start; gap: 14px;
+    }
+    .dot {
+      border-radius: 50%; flex-shrink: 0;
+      display: inline-block;
+    }
+    .dot-lg  { width: 18px; height: 18px; margin-top: 3px; }
+    .dot-sm  { width: 12px; height: 12px; }
+
+    .dot-strong     { background: #16a34a; }
+    .dot-developing { background: #facc15; }
+    .dot-needs-work { background: #dc2626; }
+    .dot-not-demo   { background: #d1d5db; }
+
+    .col-strong     { color: #15803d; }
+    .col-developing { color: #a16207; }
+    .col-needs-work { color: #b91c1c; }
+    .col-not-demo   { color: #9ca3af; }
+
+    .domain-label  { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; color: #999; margin-bottom: 4px; }
+    .domain-signal { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+
+    .domain-summary {
+      padding: 20px 24px; font-size: 15px; line-height: 1.65;
+      color: #333; border-bottom: 1px solid #f0f0f0;
+    }
+
+    .skills-header {
+      padding: 14px 24px 8px;
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.6px; color: #bbb;
+    }
+
+    .skill-row { border-top: 1px solid #f0f0f0; }
+    .skill-summary {
+      display: flex; align-items: center; gap: 12px;
+      padding: 16px 24px; cursor: pointer;
+      transition: background 0.1s;
+    }
+    .skill-summary:hover { background: #fafafa; }
+    .skill-name  { flex: 1; font-size: 15px; font-weight: 500; }
+    .skill-level { font-size: 13px; font-weight: 600; margin-right: 6px; }
+    .chevron { color: #ccc; font-size: 11px; transition: transform 0.2s; }
+    .chevron.open { transform: rotate(180deg); }
+
+    .skill-explanation {
+      padding: 0 24px 18px 48px;
+      padding-top: 2px;
+      font-size: 14px; line-height: 1.65; color: #555;
+      display: none;
+    }
+    .skill-explanation.open { display: block; }
+
+    #results { display: none; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">C</div>
+  <div>
+    <span class="header-title">CAiSEY</span>
+    <span class="header-sub">Student Feedback</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <div class="card-label">Anthropic API Key</div>
+    <input type="password" id="apiKey" placeholder="sk-ant-…" spellcheck="false" />
+    <div class="api-hint">Saved in your browser. Never sent anywhere except Anthropic.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Session Transcript</div>
+    <textarea id="transcript" placeholder="Paste your CAiSEY debate transcript here.
+
+Format each turn as:
+Student: [student's message]
+AI: [CAiSEY's message]"></textarea>
+    <button class="btn" id="evalBtn" onclick="runEvaluation()">Evaluate</button>
+  </div>
+
+  <div class="error-box" id="errorBox" style="display:none"></div>
+
+  <div id="results" class="results-card">
+    <div class="domain-banner">
+      <span class="dot dot-lg" id="domainDot"></span>
+      <div>
+        <div class="domain-label" id="domainName"></div>
+        <div class="domain-signal">
+          Session Snapshot: <span id="domainSignalText"></span>
+        </div>
+      </div>
+    </div>
+    <div class="domain-summary" id="domainSummary"></div>
+    <div class="skills-header">Skills breakdown</div>
+    <div id="skillsContainer"></div>
+  </div>
+
+</div>
+
+<script>
+  const SYSTEM_PROMPT = `CAiSEY is an AI discussion partner that deepens learning through voice- and text-based conversation. It is a practice playground, not an assessment tool. All feedback must be framed as coaching toward improvement, never as a grade or verdict.
+
+You are evaluating a student's performance in a CAiSEY debate session. The transcript below shows a conversation between a student and CAiSEY. Student turns are labeled Student: and CAiSEY turns are labeled AI:
+
+This is a DEBATE session. The student argued for or against a position.
+
+Before evaluating, scan the full transcript from start to finish. For each skill, identify the student's single strongest demonstration across all turns. Do not rate based on the first or most recent example -- find the best one. If a skill was demonstrated strongly once but inconsistently elsewhere, base the rating on the strongest moment and note the inconsistency in the explanation only.
+
+Evaluate the student on all three skills below. Then produce a domain summary and domain signal based on the rules at the end.
+
+SKILL 1: Use of Evidence
+Definition: The student challenges claims using data or specific examples.
+Rating anchors:
+- Strong: Consistently supports claims with relevant, specific real-world examples such as named companies, data points, case studies, or events that clearly strengthen the argument.
+- Developing: Provides at least one real-world example such as a named company, specific event, or data point to support a claim, though it may be underdeveloped or not fully connected to the argument.
+- Needs Work: Uses illustrative analogies or hypothetical scenarios but never grounds claims in real-world examples such as named companies, specific events, or actual data.
+- Not Demonstrated This Session: Makes no attempt to support claims with any evidence or examples -- responses consist entirely of assertions with no grounding of any kind.
+
+SKILL 2: Depth of Reasoning
+Definition: The student exposes faulty logic and anticipates rebuttals.
+Rating anchors:
+- Strong: Explores implications, mechanisms, trade-offs, or causes in detail -- goes beyond the initial claim to examine what it means, why it holds, or what it leads to, demonstrating thorough understanding of the topic.
+- Developing: Advances the argument by introducing new angles or connections, but stops short of fully exploring where they lead or what they would require.
+- Needs Work: Restates or rephrases the same point without meaningfully advancing the argument -- does not introduce new reasoning, connections, or implications.
+- Not Demonstrated This Session: Does not demonstrate depth of reasoning in this session.
+
+SKILL 3: Logical Soundness
+Definition: The student's reasoning holds structural integrity -- claims are paired with reasons, and the logical steps between them do not require the listener to supply missing connections.
+Rating anchors:
+- Strong: The student's best reasoning moment contains a claim, evidence, and an explicit reason (the "bridge"). The listener does not need to use their own intuition or industry knowledge to understand why/how the reason supports the claim. When asked for a follow-up, the student addresses the specific causal mechanism or logic challenged, rather than just clarifying their claim.
+- Developing: The student's best moment shows a clear claim and a relevant reason, but the "bridge" between them is implicit. The listener understands the point but must provide the final how/why reasoning themselves. Follow-up responses may address only the surface level of CAiSEY's challenge.
+- Needs Work: The student makes claims without supporting reasons, or the reasons provided are non-sequiturs (they don't logically relate to the claim). Even at their best, the student's logic requires the listener to guess the intended connection. When challenged, the student repeats their conclusion or deflects rather than explaining reasoning steps.
+- Not Demonstrated This Session: The student did not produce enough argumentative content to evaluate this skill.
+
+DOMAIN SIGNAL RULE:
+After rating all three skills, determine the domain signal as follows:
+- If all three skills share the same rating, return that rating as the domain signal.
+- If the ratings differ in any way, return Developing as the domain signal.
+
+DOMAIN SUMMARY RULE:
+Write 2-3 sentences directly to the student summarizing what they did well and what to work on, based on the combined skill ratings. Do NOT mention skill names -- do not write "Use of Evidence", "Depth of Reasoning", or "Logical Soundness". Instead describe the behaviours directly: for example, instead of "your Use of Evidence was strong", write "you grounded your argument in concrete real-world examples". Write in a warm, encouraging tone suitable for a high school student -- use plain everyday language, short sentences, and avoid academic or technical vocabulary. Do not introduce new observations not already reflected in the skill explanations.
+
+OUTPUT FORMAT:
+Return a JSON object only -- no preamble, no markdown fences.
+Each skill explanation must embed one verbatim quote from a Student: turn naturally into the prose. No quote may be reused across skills.
+
+{
+  "domain": "Reasoning & Argumentation",
+  "domain_signal": "Strong | Developing | Needs Work | Not Demonstrated This Session",
+  "domain_summary": "2-3 sentences directly to the student covering strengths and areas to work on across the three skills.",
+  "skills": [
+    {
+      "skill_name": "Use of Evidence",
+      "level": "Strong | Developing | Needs Work | Not Demonstrated This Session",
+      "explanation": "1-2 sentences written directly to the student using you. Embed one verbatim quote from their strongest turn naturally into the prose. End with one concrete forward-looking coaching sentence tailored to this specific transcript."
+    },
+    {
+      "skill_name": "Depth of Reasoning",
+      "level": "Strong | Developing | Needs Work | Not Demonstrated This Session",
+      "explanation": "1-2 sentences written directly to the student using you. Embed one verbatim quote from their strongest turn naturally into the prose. End with one concrete forward-looking coaching sentence tailored to this specific transcript."
+    },
+    {
+      "skill_name": "Logical Soundness",
+      "level": "Strong | Developing | Needs Work | Not Demonstrated This Session",
+      "explanation": "1-2 sentences written directly to the student using you. Embed one verbatim quote from their strongest turn naturally into the prose. End with one concrete forward-looking coaching sentence tailored to this specific transcript."
+    }
+  ]
+}
+
+If a skill is Not Demonstrated This Session, the explanation must be exactly: "This skill wasn't part of your conversation this time -- try incorporating it in your next session."`;
+
+  // Restore saved API key
+  const keyInput = document.getElementById('apiKey');
+  keyInput.value = localStorage.getItem('caisey_api_key') || '';
+  keyInput.addEventListener('input', () => {
+    const v = keyInput.value.trim();
+    v ? localStorage.setItem('caisey_api_key', v) : localStorage.removeItem('caisey_api_key');
+  });
+
+  function levelKey(level) {
+    if (!level) return 'not-demo';
+    const l = level.toLowerCase();
+    if (l === 'strong') return 'strong';
+    if (l === 'developing') return 'developing';
+    if (l.includes('needs')) return 'needs-work';
+    return 'not-demo';
+  }
+
+  function showError(msg) {
+    const box = document.getElementById('errorBox');
+    box.textContent = msg;
+    box.style.display = msg ? 'block' : 'none';
+  }
+
+  function setLoading(on) {
+    const btn = document.getElementById('evalBtn');
+    btn.disabled = on;
+    btn.innerHTML = on
+      ? '<span class="spinner"></span> Evaluating…'
+      : 'Evaluate';
+  }
+
+  function renderResults(data) {
+    const key = levelKey(data.domain_signal);
+
+    // Domain dot + signal
+    const dot = document.getElementById('domainDot');
+    dot.className = `dot dot-lg dot-${key}`;
+
+    document.getElementById('domainName').textContent = data.domain;
+
+    const sig = document.getElementById('domainSignalText');
+    sig.textContent = data.domain_signal;
+    sig.className = `col-${key}`;
+
+    document.getElementById('domainSummary').textContent = data.domain_summary;
+
+    // Skills
+    const container = document.getElementById('skillsContainer');
+    container.innerHTML = '';
+    (data.skills || []).forEach((skill, i) => {
+      const sk = levelKey(skill.level);
+      const row = document.createElement('div');
+      row.className = 'skill-row';
+
+      const summary = document.createElement('div');
+      summary.className = 'skill-summary';
+      summary.innerHTML = `
+        <span class="dot dot-sm dot-${sk}"></span>
+        <span class="skill-name">${skill.skill_name}</span>
+        <span class="skill-level col-${sk}">${skill.level}</span>
+        <span class="chevron" id="chev-${i}">▼</span>
+      `;
+
+      const explanation = document.createElement('div');
+      explanation.className = 'skill-explanation';
+      explanation.id = `exp-${i}`;
+      explanation.textContent = skill.explanation;
+
+      summary.addEventListener('click', () => {
+        const open = explanation.classList.toggle('open');
+        document.getElementById(`chev-${i}`).classList.toggle('open', open);
+      });
+
+      row.appendChild(summary);
+      row.appendChild(explanation);
+      container.appendChild(row);
+    });
+
+    document.getElementById('results').style.display = 'block';
+  }
+
+  async function runEvaluation() {
+    const apiKey = document.getElementById('apiKey').value.trim();
+    const transcript = document.getElementById('transcript').value.trim();
+
+    showError('');
+    if (!apiKey) { showError('Please enter your Anthropic API key.'); return; }
+    if (!transcript) { showError('Please paste a transcript first.'); return; }
+
+    setLoading(true);
+    document.getElementById('results').style.display = 'none';
+
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({
+          model: 'claude-opus-4-7',
+          max_tokens: 1500,
+          system: SYSTEM_PROMPT,
+          messages: [{ role: 'user', content: transcript }],
+        }),
+      });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.error?.message || `API error ${res.status}`);
+      }
+
+      const data = await res.json();
+      const text = data.content?.[0]?.text || '';
+      const clean = text.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
+      renderResults(JSON.parse(clean));
+
+    } catch (e) {
+      showError(e.message || 'Something went wrong. Check your API key and try again.');
+    } finally {
+      setLoading(false);
+    }
+  }
+</script>
+</body>
+</html>

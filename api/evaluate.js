@@ -6,31 +6,13 @@ This is a DEBATE session. The student argued for or against a position.
 
 Before evaluating, scan the full transcript from start to finish. For each skill, identify the student's single strongest demonstration across all turns. Do not rate based on the first or most recent example -- find the best one. If a skill was demonstrated strongly once but inconsistently elsewhere, base the rating on the strongest moment and note the inconsistency in the explanation only.
 
-Evaluate the student on all three skills below. Then produce a domain summary and domain signal based on the rules at the end.
+Evaluate the student on all three skills below using the rubric table. Then produce a domain summary and domain signal based on the rules at the end.
 
-SKILL 1: Use of Evidence
-Definition: The student challenges claims using data or specific examples.
-Rating anchors:
-- Strong: Consistently supports claims with relevant, specific real-world examples such as named companies, data points, case studies, or events that clearly strengthen the argument.
-- Developing: Provides at least one real-world example such as a named company, specific event, or data point to support a claim, though it may be underdeveloped or not fully connected to the argument.
-- Needs Work: Uses illustrative analogies or hypothetical scenarios but never grounds claims in real-world examples such as named companies, specific events, or actual data.
-- Not Demonstrated This Session: Makes no attempt to support claims with any evidence or examples -- responses consist entirely of assertions with no grounding of any kind.
-
-SKILL 2: Depth of Reasoning
-Definition: The student exposes faulty logic and anticipates rebuttals.
-Rating anchors:
-- Strong: Explores implications, mechanisms, trade-offs, or causes in detail -- goes beyond the initial claim to examine what it means, why it holds, or what it leads to, demonstrating thorough understanding of the topic.
-- Developing: Advances the argument by introducing new angles or connections, but stops short of fully exploring where they lead or what they would require.
-- Needs Work: Restates or rephrases the same point without meaningfully advancing the argument -- does not introduce new reasoning, connections, or implications.
-- Not Demonstrated This Session: Does not demonstrate depth of reasoning in this session.
-
-SKILL 3: Logical Soundness
-Definition: The student's reasoning holds structural integrity -- claims are paired with reasons, and the logical steps between them do not require the listener to supply missing connections.
-Rating anchors:
-- Strong: The student's best reasoning moment contains a claim, evidence, and an explicit reason (the "bridge"). The listener does not need to use their own intuition or industry knowledge to understand why/how the reason supports the claim. When asked for a follow-up, the student addresses the specific causal mechanism or logic challenged, rather than just clarifying their claim.
-- Developing: The student's best moment shows a clear claim and a relevant reason, but the "bridge" between them is implicit. The listener understands the point but must provide the final how/why reasoning themselves. Follow-up responses may address only the surface level of CAiSEY's challenge.
-- Needs Work: The student makes claims without supporting reasons, or the reasons provided are non-sequiturs (they don't logically relate to the claim). Even at their best, the student's logic requires the listener to guess the intended connection. When challenged, the student repeats their conclusion or deflects rather than explaining reasoning steps.
-- Not Demonstrated This Session: The student did not produce enough argumentative content to evaluate this skill.
+| Skill | Strong | Developing | Needs Work | Not Demonstrated |
+|---|---|---|---|---|
+| **Use of Evidence** | Consistently supports claims with relevant, specific real-world examples such as named companies, data points, case studies, or events that clearly strengthen the argument. | Provides at least one real-world example such as a named company, specific event, or data point to support a claim, though it may be underdeveloped or not fully connected to the argument. | Uses illustrative analogies or hypothetical scenarios but never grounds claims in real-world examples such as named companies, specific events, or actual data. | Makes no attempt to support claims with any evidence or examples -- responses consist entirely of assertions with no grounding of any kind. |
+| **Depth of Reasoning** | Explores implications, mechanisms, trade-offs, or causes in detail -- goes beyond the initial claim to examine what it means, why it holds, or what it leads to, demonstrating thorough understanding of the topic. | Advances the argument by introducing new angles or connections, but stops short of fully exploring where they lead or what they would require. | Reasoning is mostly superficial or simplistic -- relies on restatement or general assertions without exploring complexity or broader implications. | Does not demonstrate depth of reasoning in this session. |
+| **Logical Soundness** *(Debate only)* | Best reasoning moment contains a claim, evidence, and an explicit reason (the "bridge") -- the listener does not need to supply their own intuition or industry knowledge to understand why or how the reason supports the claim. | Best moment shows a clear claim and a relevant reason, but the "bridge" between them is implicit -- the listener understands the point but must supply the final how/why reasoning themselves. | Claims are made without supporting reasons, or reasons provided are non-sequiturs that don't logically relate to the claim -- even at their best, the logic requires the listener to guess the intended connection. | Does not produce reasoning that connects a claim to a supporting reason in this session. |
 
 DOMAIN SIGNAL RULE:
 After rating all three skills, determine the domain signal as follows:

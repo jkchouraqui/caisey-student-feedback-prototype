@@ -45,6 +45,7 @@ Return a JSON object only -- no preamble, no markdown fences.
 Each skill explanation must embed one verbatim quote from a Student: turn naturally into the prose. No quote may be reused across skills.
 
 {
+  "topic": "3-5 words describing the debate subject (e.g. 'Universal Basic Income', 'Social Media Age Limits')",
   "domain": "Reasoning & Argumentation",
   "domain_signal": "Strong | Developing | Needs Work | Not Demonstrated This Session",
   "domain_summary": "2-3 sentences directly to the student covering strengths and areas to work on across the three skills.",

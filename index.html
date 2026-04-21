@@ -32,7 +32,65 @@
     .header-title { font-size: 18px; font-weight: 600; }
     .header-sub   { font-size: 13px; color: #888; margin-left: 4px; }
 
-    .container { max-width: 780px; margin: 0 auto; padding: 32px 24px 64px; }
+    /* Layout */
+    .layout {
+      display: flex;
+      align-items: flex-start;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px 24px 64px;
+      gap: 24px;
+    }
+
+    .sidebar {
+      width: 220px;
+      flex-shrink: 0;
+      display: none;
+    }
+    .sidebar.visible { display: block; }
+
+    .sidebar-header {
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.6px; color: #bbb;
+      padding: 0 4px 10px;
+    }
+
+    .history-item {
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .history-item:hover { border-color: #ccc; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+    .history-item.active { border-color: #1a1a1a; }
+
+    .history-item-top {
+      display: flex; align-items: center; gap: 8px; margin-bottom: 5px;
+    }
+    .history-signal { font-size: 12px; font-weight: 600; }
+    .history-date   { font-size: 11px; color: #aaa; margin-top: 2px; }
+    .history-snippet {
+      font-size: 12px; color: #666; line-height: 1.4;
+      display: -webkit-box; -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .history-topic {
+      font-size: 13px; font-weight: 600; color: #1a1a1a;
+      margin-bottom: 5px; cursor: text;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .history-topic:hover { color: #555; }
+    .history-topic-input {
+      width: 100%; font-size: 13px; font-weight: 600;
+      border: 1px solid #1a1a1a; border-radius: 4px;
+      padding: 2px 5px; margin-bottom: 5px; outline: none;
+      font-family: inherit;
+    }
+
+    .main { flex: 1; min-width: 0; }
 
     .card {
       background: #fff;
@@ -89,6 +147,19 @@
       border-radius: 8px; padding: 14px 16px;
       font-size: 14px; color: #b91c1c; margin-bottom: 24px;
     }
+
+    .info-box {
+      background: #fffbeb; border: 1px solid #fcd34d;
+      border-radius: 8px; padding: 14px 16px;
+      font-size: 14px; color: #92400e; margin-bottom: 24px;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    .info-box-btn {
+      background: none; border: 1px solid #d97706; border-radius: 6px;
+      padding: 5px 12px; font-size: 13px; font-weight: 600; color: #92400e;
+      cursor: pointer; white-space: nowrap; flex-shrink: 0;
+    }
+    .info-box-btn:hover { background: #fef3c7; }
 
     /* Results */
     .results-card {
@@ -164,38 +235,236 @@
   </div>
 </div>
 
-<div class="container">
+<div class="layout">
 
-  <div class="card">
-    <div class="card-label">Session Transcript</div>
-    <textarea id="transcript" placeholder="Paste your CAiSEY debate transcript here.
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">History</div>
+    <div id="historyList"></div>
+  </aside>
+
+  <div class="main">
+
+    <div class="card" id="apiKeyCard">
+      <div class="card-label">Anthropic API Key</div>
+      <input type="password" id="apiKey" placeholder="sk-ant-…" />
+      <div class="api-hint">Your key is saved in this browser so you only need to enter it once.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Session Transcript</div>
+      <textarea id="transcript" placeholder="Paste your CAiSEY debate transcript here.
 
 Format each turn as:
 Student: [student's message]
 AI: [CAiSEY's message]"></textarea>
-    <button class="btn" id="evalBtn" onclick="runEvaluation()">Evaluate</button>
-  </div>
+      <button class="btn" id="evalBtn" onclick="runEvaluation()">Evaluate</button>
+    </div>
 
-  <div class="error-box" id="errorBox" style="display:none"></div>
+    <div class="error-box" id="errorBox" style="display:none"></div>
+    <div class="info-box" id="infoBox" style="display:none">
+      <span id="infoMsg"></span>
+      <button class="info-box-btn" onclick="runEvaluation(true)">Re-evaluate anyway</button>
+    </div>
 
-  <div id="results" class="results-card">
-    <div class="domain-banner">
-      <span class="dot dot-lg" id="domainDot"></span>
-      <div>
-        <div class="domain-label" id="domainName"></div>
-        <div class="domain-signal">
-          Session Snapshot: <span id="domainSignalText"></span>
+    <div id="results" class="results-card">
+      <div class="domain-banner">
+        <span class="dot dot-lg" id="domainDot"></span>
+        <div>
+          <div class="domain-label" id="domainName"></div>
+          <div class="domain-signal">
+            Session Snapshot: <span id="domainSignalText"></span>
+          </div>
         </div>
       </div>
+      <div class="domain-summary" id="domainSummary"></div>
+      <div class="skills-header">Skills breakdown</div>
+      <div id="skillsContainer"></div>
     </div>
-    <div class="domain-summary" id="domainSummary"></div>
-    <div class="skills-header">Skills breakdown</div>
-    <div id="skillsContainer"></div>
-  </div>
 
+  </div>
 </div>
 
 <script>
+  const SYSTEM_PROMPT = `CAiSEY is an AI discussion partner that deepens learning through voice- and text-based conversation. It is a practice playground, not an assessment tool. All feedback must be framed as coaching toward improvement, never as a grade or verdict.
+
+You are evaluating a student's performance in a CAiSEY debate session. The transcript below shows a conversation between a student and CAiSEY. Student turns are labeled Student: and CAiSEY turns are labeled AI:
+
+This is a DEBATE session. The student argued for or against a position.
+
+Before evaluating, scan the full transcript from start to finish. For each skill, identify the student's single strongest demonstration across all turns. Do not rate based on the first or most recent example -- find the best one. If a skill was demonstrated strongly once but inconsistently elsewhere, base the rating on the strongest moment and note the inconsistency in the explanation only.
+
+Evaluate the student on all three skills below. Then produce a domain summary and domain signal based on the rules at the end.
+
+SKILL 1: Use of Evidence
+Definition: The student challenges claims using data or specific examples.
+Rating anchors:
+- Strong: Consistently supports claims with relevant, specific real-world examples such as named companies, data points, case studies, or events that clearly strengthen the argument.
+- Developing: Provides at least one real-world example such as a named company, specific event, or data point to support a claim, though it may be underdeveloped or not fully connected to the argument.
+- Needs Work: Uses illustrative analogies or hypothetical scenarios but never grounds claims in real-world examples such as named companies, specific events, or actual data.
+- Not Demonstrated This Session: Makes no attempt to support claims with any evidence or examples -- responses consist entirely of assertions with no grounding of any kind.
+
+SKILL 2: Depth of Reasoning
+Definition: The student exposes faulty logic and anticipates rebuttals.
+Rating anchors:
+- Strong: Explores implications, mechanisms, trade-offs, or causes in detail -- goes beyond the initial claim to examine what it means, why it holds, or what it leads to, demonstrating thorough understanding of the topic.
+- Developing: Advances the argument by introducing new angles or connections, but stops short of fully exploring where they lead or what they would require.
+- Needs Work: Restates or rephrases the same point without meaningfully advancing the argument -- does not introduce new reasoning, connections, or implications.
+- Not Demonstrated This Session: Does not demonstrate depth of reasoning in this session.
+
+SKILL 3: Logical Soundness
+Definition: The student's reasoning holds structural integrity -- claims are paired with reasons, and the logical steps between them do not require the listener to supply missing connections.
+Rating anchors:
+- Strong: The student's best reasoning moment contains a claim, evidence, and an explicit reason (the "bridge"). The listener does not need to use their own intuition or industry knowledge to understand why/how the reason supports the claim. When asked for a follow-up, the student addresses the specific causal mechanism or logic challenged, rather than just clarifying their claim.
+- Developing: The student's best moment shows a clear claim and a relevant reason, but the "bridge" between them is implicit. The listener understands the point but must provide the final how/why reasoning themselves. Follow-up responses may address only the surface level of CAiSEY's challenge.
+- Needs Work: The student makes claims without supporting reasons, or the reasons provided are non-sequiturs (they don't logically relate to the claim). Even at their best, the student's logic requires the listener to guess the intended connection. When challenged, the student repeats their conclusion or deflects rather than explaining reasoning steps.
+- Not Demonstrated This Session: The student did not produce enough argumentative content to evaluate this skill.
+
+DOMAIN SIGNAL RULE:
+After rating all three skills, determine the domain signal as follows:
+- If all three skills share the same rating, return that rating as the domain signal.
+- If the ratings differ in any way, return Developing as the domain signal.
+
+DOMAIN SUMMARY RULE:
+Write 2-3 sentences directly to the student summarizing what they did well and what to work on, based on the combined skill ratings. Do NOT mention skill names -- do not write "Use of Evidence", "Depth of Reasoning", or "Logical Soundness". Instead describe the behaviours directly: for example, instead of "your Use of Evidence was strong", write "you grounded your argument in concrete real-world examples". Write in a warm, encouraging tone suitable for a high school student -- use plain everyday language, short sentences, and avoid academic or technical vocabulary. Do not introduce new observations not already reflected in the skill explanations.
+
+OUTPUT FORMAT:
+Return a JSON object only -- no preamble, no markdown fences.
+Each skill explanation must embed one verbatim quote from a Student: turn naturally into the prose. No quote may be reused across skills.
+
+{
+  "topic": "3-5 words describing the debate subject (e.g. 'Universal Basic Income', 'Social Media Age Limits')",
+  "domain": "Reasoning & Argumentation",
+  "domain_signal": "Strong | Developing | Needs Work | Not Demonstrated This Session",
+  "domain_summary": "2-3 sentences directly to the student covering strengths and areas to work on across the three skills.",
+  "skills": [
+    {
+      "skill_name": "Use of Evidence",
+      "level": "Strong | Developing | Needs Work | Not Demonstrated This Session",
+      "explanation": "1-2 sentences written directly to the student using you. Embed one verbatim quote from their strongest turn naturally into the prose. End with one concrete forward-looking coaching sentence tailored to this specific transcript."
+    },
+    {
+      "skill_name": "Depth of Reasoning",
+      "level": "Strong | Developing | Needs Work | Not Demonstrated This Session",
+      "explanation": "1-2 sentences written directly to the student using you. Embed one verbatim quote from their strongest turn naturally into the prose. End with one concrete forward-looking coaching sentence tailored to this specific transcript."
+    },
+    {
+      "skill_name": "Logical Soundness",
+      "level": "Strong | Developing | Needs Work | Not Demonstrated This Session",
+      "explanation": "1-2 sentences written directly to the student using you. Embed one verbatim quote from their strongest turn naturally into the prose. End with one concrete forward-looking coaching sentence tailored to this specific transcript."
+    }
+  ]
+}
+
+If a skill is Not Demonstrated This Session, the explanation must be exactly: "This skill wasn't part of your conversation this time -- try incorporating it in your next session."`;
+
+  // ── History ──────────────────────────────────────────────
+  function hashString(str) {
+    let h = 5381;
+    for (let i = 0; i < str.length; i++) { h = ((h << 5) + h) + str.charCodeAt(i); h |= 0; }
+    return h.toString(36);
+  }
+
+  function getHistory() {
+    try { return JSON.parse(localStorage.getItem('caisey_history') || '[]'); } catch { return []; }
+  }
+
+  function updateHistoryTopic(id, topic) {
+    const history = getHistory();
+    const entry = history.find(e => e.id === id);
+    if (entry) {
+      entry.topic = topic;
+      localStorage.setItem('caisey_history', JSON.stringify(history));
+    }
+  }
+
+  function saveToHistory(transcript, result, duration) {
+    const history = getHistory();
+    const snippet = transcript.replace(/\n+/g, ' ').trim().slice(0, 60) + '…';
+    const now = new Date();
+    const date = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                + ', ' + now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    const entry = {
+      id: Date.now(), date, snippet,
+      topic: result.topic || 'Untitled session',
+      signal: result.domain_signal,
+      transcriptHash: hashString(transcript.trim()),
+      duration, result
+    };
+    history.unshift(entry);
+    localStorage.setItem('caisey_history', JSON.stringify(history.slice(0, 50)));
+    return entry.id;
+  }
+
+  function renderSidebar(activeId) {
+    const history = getHistory();
+    const sidebar = document.getElementById('sidebar');
+    const list = document.getElementById('historyList');
+    if (!history.length) { sidebar.classList.remove('visible'); return; }
+    sidebar.classList.add('visible');
+    list.innerHTML = '';
+    history.forEach(entry => {
+      const key = levelKey(entry.signal);
+      const durLabel = entry.duration != null ? `· ${entry.duration}s` : '';
+      const item = document.createElement('div');
+      item.className = 'history-item' + (entry.id === activeId ? ' active' : '');
+
+      const topicEl = document.createElement('div');
+      topicEl.className = 'history-topic';
+      topicEl.title = 'Click to rename';
+      topicEl.textContent = entry.topic || 'Untitled session';
+
+      topicEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const input = document.createElement('input');
+        input.className = 'history-topic-input';
+        input.value = topicEl.textContent;
+        topicEl.replaceWith(input);
+        input.focus();
+        input.select();
+        const save = () => {
+          const val = input.value.trim() || 'Untitled session';
+          topicEl.textContent = val;
+          input.replaceWith(topicEl);
+          updateHistoryTopic(entry.id, val);
+        };
+        input.addEventListener('blur', save);
+        input.addEventListener('keydown', (e) => { if (e.key === 'Enter') input.blur(); if (e.key === 'Escape') { input.value = topicEl.textContent; input.blur(); } });
+      });
+
+      const bottom = document.createElement('div');
+      bottom.innerHTML = `
+        <div class="history-item-top">
+          <span class="dot dot-sm dot-${key}"></span>
+          <span class="history-signal col-${key}">${entry.signal}</span>
+        </div>
+        <div class="history-date">${entry.date} ${durLabel}</div>
+      `;
+
+      item.appendChild(topicEl);
+      item.appendChild(bottom);
+      item.addEventListener('click', () => renderResults(entry.result, entry.id));
+      list.appendChild(item);
+    });
+  }
+
+  // ── Timer ─────────────────────────────────────────────────
+  let timerInterval = null;
+
+  function startTimer() {
+    const start = Date.now();
+    const btn = document.getElementById('evalBtn');
+    timerInterval = setInterval(() => {
+      const s = Math.floor((Date.now() - start) / 1000);
+      btn.innerHTML = `<span class="spinner"></span> Evaluating… ${s}s`;
+    }, 500);
+  }
+
+  function stopTimer() {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+
+  // ── UI helpers ────────────────────────────────────────────
   function levelKey(level) {
     if (!level) return 'not-demo';
     const l = level.toLowerCase();
@@ -209,39 +478,44 @@ AI: [CAiSEY's message]"></textarea>
     const box = document.getElementById('errorBox');
     box.textContent = msg;
     box.style.display = msg ? 'block' : 'none';
+    if (msg) document.getElementById('infoBox').style.display = 'none';
+  }
+
+  function showInfo(msg) {
+    const box = document.getElementById('infoBox');
+    if (!msg) { box.style.display = 'none'; return; }
+    document.getElementById('infoMsg').textContent = msg;
+    box.style.display = 'flex';
+    document.getElementById('errorBox').style.display = 'none';
   }
 
   function setLoading(on) {
     const btn = document.getElementById('evalBtn');
     btn.disabled = on;
-    btn.innerHTML = on
-      ? '<span class="spinner"></span> Evaluating…'
-      : 'Evaluate';
+    if (on) {
+      btn.innerHTML = '<span class="spinner"></span> Evaluating… 0s';
+      startTimer();
+    } else {
+      stopTimer();
+      btn.innerHTML = 'Evaluate';
+    }
   }
 
-  function renderResults(data) {
+  function renderResults(data, activeId) {
     const key = levelKey(data.domain_signal);
-
-    // Domain dot + signal
-    const dot = document.getElementById('domainDot');
-    dot.className = `dot dot-lg dot-${key}`;
-
+    document.getElementById('domainDot').className = `dot dot-lg dot-${key}`;
     document.getElementById('domainName').textContent = data.domain;
-
     const sig = document.getElementById('domainSignalText');
     sig.textContent = data.domain_signal;
     sig.className = `col-${key}`;
-
     document.getElementById('domainSummary').textContent = data.domain_summary;
 
-    // Skills
     const container = document.getElementById('skillsContainer');
     container.innerHTML = '';
     (data.skills || []).forEach((skill, i) => {
       const sk = levelKey(skill.level);
       const row = document.createElement('div');
       row.className = 'skill-row';
-
       const summary = document.createElement('div');
       summary.className = 'skill-summary';
       summary.innerHTML = `
@@ -250,39 +524,76 @@ AI: [CAiSEY's message]"></textarea>
         <span class="skill-level col-${sk}">${skill.level}</span>
         <span class="chevron" id="chev-${i}">▼</span>
       `;
-
       const explanation = document.createElement('div');
       explanation.className = 'skill-explanation';
       explanation.id = `exp-${i}`;
       explanation.textContent = skill.explanation;
-
       summary.addEventListener('click', () => {
         const open = explanation.classList.toggle('open');
         document.getElementById(`chev-${i}`).classList.toggle('open', open);
       });
-
       row.appendChild(summary);
       row.appendChild(explanation);
       container.appendChild(row);
     });
 
     document.getElementById('results').style.display = 'block';
+    renderSidebar(activeId);
   }
 
-  async function runEvaluation() {
+  // ── Init ──────────────────────────────────────────────────
+  window.addEventListener('DOMContentLoaded', () => {
+    const savedKey = localStorage.getItem('caisey_api_key');
+    if (savedKey) {
+      document.getElementById('apiKey').value = savedKey;
+      document.getElementById('apiKeyCard').style.display = 'none';
+    }
+    renderSidebar(null);
+  });
+
+  // ── Evaluate ──────────────────────────────────────────────
+  async function runEvaluation(force = false) {
     const transcript = document.getElementById('transcript').value.trim();
+    const apiKey = document.getElementById('apiKey').value.trim();
 
     showError('');
+    showInfo('');
+    if (!apiKey) { showError('Please enter your Anthropic API key.'); return; }
     if (!transcript) { showError('Please paste a transcript first.'); return; }
+
+    localStorage.setItem('caisey_api_key', apiKey);
+    document.getElementById('apiKeyCard').style.display = 'none';
+
+    // Duplicate check
+    if (!force) {
+      const hash = hashString(transcript.trim());
+      const existing = getHistory().find(e => e.transcriptHash === hash);
+      if (existing) {
+        showInfo('You\'ve already evaluated this transcript — showing the previous result.');
+        renderResults(existing.result, existing.id);
+        return;
+      }
+    }
 
     setLoading(true);
     document.getElementById('results').style.display = 'none';
+    const start = Date.now();
 
     try {
-      const res = await fetch('/api/evaluate', {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transcript }),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({
+          model: 'claude-opus-4-7',
+          max_tokens: 1500,
+          system: SYSTEM_PROMPT,
+          messages: [{ role: 'user', content: transcript }],
+        }),
       });
 
       if (!res.ok) {
@@ -293,7 +604,10 @@ AI: [CAiSEY's message]"></textarea>
       const data = await res.json();
       const text = data.content?.[0]?.text || '';
       const clean = text.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
-      renderResults(JSON.parse(clean));
+      const result = JSON.parse(clean);
+      const duration = Math.round((Date.now() - start) / 1000);
+      const id = saveToHistory(transcript, result, duration);
+      renderResults(result, id);
 
     } catch (e) {
       showError(e.message || 'Something went wrong. Check your API key and try again.');

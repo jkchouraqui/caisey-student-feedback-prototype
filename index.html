@@ -35,8 +35,27 @@
       padding: 16px 28px;
       display: flex;
       align-items: center;
+      justify-content: space-between;
       gap: 12px;
     }
+    .instructor-toggle-wrap {
+      display: flex; align-items: center; gap: 8px;
+      cursor: pointer; user-select: none; flex-shrink: 0;
+    }
+    .instructor-toggle-label { font-size: 13px; font-weight: 600; color: var(--text-muted); }
+    .toggle-track {
+      width: 36px; height: 20px; border-radius: 10px;
+      background: var(--border); position: relative;
+      transition: background 0.2s; flex-shrink: 0;
+    }
+    .toggle-track.on { background: var(--accent); }
+    .toggle-thumb {
+      position: absolute; top: 3px; left: 3px;
+      width: 14px; height: 14px; border-radius: 50%;
+      background: #fff; transition: transform 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    }
+    .toggle-track.on .toggle-thumb { transform: translateX(16px); }
     .header-logo {
       width: 36px; height: 36px;
       background: var(--accent);
@@ -282,15 +301,72 @@
       transition: color 0.12s;
     }
     .clear-history:hover { color: #B91C1C; }
+
+    /* Instructor modal */
+    .instructor-modal {
+      position: fixed; inset: 0; background: rgba(45,43,69,0.5);
+      z-index: 1000; display: flex; align-items: center; justify-content: center;
+      padding: 32px;
+    }
+    .instructor-panel {
+      background: var(--card-bg); border-radius: 16px;
+      box-shadow: 0 24px 64px rgba(68,87,183,0.2);
+      display: flex; overflow: hidden;
+      width: 100%; max-width: 980px; height: 78vh;
+      position: relative;
+    }
+    .modal-close {
+      position: absolute; top: 14px; right: 14px;
+      width: 30px; height: 30px; border-radius: 50%;
+      background: var(--border-light); border: none;
+      font-size: 13px; cursor: pointer; color: var(--text-muted);
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.12s, color 0.12s; z-index: 1;
+      font-family: inherit;
+    }
+    .modal-close:hover { background: var(--border); color: var(--text-dark); }
+    .modal-left {
+      width: 42%; flex-shrink: 0; padding: 32px 28px;
+      border-right: 1px solid var(--border); overflow-y: auto;
+      display: flex; flex-direction: column; gap: 18px;
+    }
+    .modal-right {
+      flex: 1; padding: 32px 28px; overflow-y: auto;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .modal-skill-header { display: flex; align-items: flex-start; gap: 12px; }
+    .modal-dot-wrap { padding-top: 4px; }
+    .modal-skill-name { font-size: 18px; font-weight: 700; color: var(--text-dark); letter-spacing: -0.3px; }
+    .modal-skill-level { font-size: 13px; font-weight: 600; margin-top: 4px; }
+    .modal-explanation { font-size: 15px; line-height: 1.75; color: var(--text); }
+    .modal-section-label {
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.7px; color: var(--text-muted);
+    }
+    .transcript-turn { margin-bottom: 14px; }
+    .transcript-speaker {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.8px; margin-bottom: 3px;
+    }
+    .transcript-speaker.student { color: var(--accent); }
+    .transcript-speaker.ai { color: var(--text-muted); }
+    .transcript-text { font-size: 14px; line-height: 1.75; color: var(--text-dark); }
+    .transcript-text.ai-text { color: var(--text); }
   </style>
 </head>
 <body>
 
 <div class="header">
-  <div class="header-logo">C</div>
-  <div>
-    <span class="header-title">CAiSEY</span>
-    <span class="header-sub">Student Feedback</span>
+  <div style="display:flex;align-items:center;gap:12px">
+    <div class="header-logo">C</div>
+    <div>
+      <span class="header-title">CAiSEY</span>
+      <span class="header-sub">Student Feedback</span>
+    </div>
+  </div>
+  <div class="instructor-toggle-wrap" onclick="toggleInstructorMode()">
+    <span class="instructor-toggle-label">Instructor View</span>
+    <div class="toggle-track" id="toggleTrack"><div class="toggle-thumb"></div></div>
   </div>
 </div>
 
@@ -338,7 +414,95 @@ AI: [CAiSEY's message]"></textarea>
   </div>
 </div>
 
+<div class="instructor-modal" id="instructorModal" style="display:none" onclick="handleModalBackdrop(event)">
+  <div class="instructor-panel">
+    <button class="modal-close" onclick="closeInstructorModal()">✕</button>
+    <div class="modal-left">
+      <div class="modal-skill-header">
+        <div class="modal-dot-wrap"><span class="dot dot-sm" id="modalDot"></span></div>
+        <div>
+          <div class="modal-skill-name" id="modalSkillName"></div>
+          <div class="modal-skill-level" id="modalSkillLevel"></div>
+        </div>
+      </div>
+      <div class="modal-explanation" id="modalExplanation"></div>
+    </div>
+    <div class="modal-right">
+      <div class="modal-section-label">Session Transcript</div>
+      <div id="modalTranscript"></div>
+    </div>
+  </div>
+</div>
+
 <script>
+  // ── Instructor mode ───────────────────────────────────────
+  let instructorMode = false;
+  let currentTranscript = '';
+
+  function toggleInstructorMode() {
+    instructorMode = !instructorMode;
+    document.getElementById('toggleTrack').classList.toggle('on', instructorMode);
+    document.querySelectorAll('.skill-explanation.open').forEach(el => el.classList.remove('open'));
+    document.querySelectorAll('.chevron.open').forEach(el => el.classList.remove('open'));
+    if (!instructorMode) closeInstructorModal();
+  }
+
+  function openInstructorModal(skill) {
+    const sk = levelKey(skill.level);
+    document.getElementById('modalDot').className = `dot dot-sm dot-${sk}`;
+    document.getElementById('modalSkillName').textContent = skill.skill_name;
+    const lvl = document.getElementById('modalSkillLevel');
+    lvl.textContent = skill.level;
+    lvl.className = `modal-skill-level col-${sk}`;
+    document.getElementById('modalExplanation').textContent = skill.explanation;
+
+    const container = document.getElementById('modalTranscript');
+    container.innerHTML = '';
+    if (!currentTranscript) {
+      container.textContent = 'No transcript available.';
+    } else {
+      const turns = [];
+      let current = null;
+      currentTranscript.split('\n').forEach(line => {
+        if (line.startsWith('Student:')) {
+          if (current) turns.push(current);
+          current = { speaker: 'student', text: line.slice('Student:'.length).trim() };
+        } else if (line.startsWith('AI:')) {
+          if (current) turns.push(current);
+          current = { speaker: 'ai', text: line.slice('AI:'.length).trim() };
+        } else if (current && line.trim()) {
+          current.text += ' ' + line.trim();
+        }
+      });
+      if (current) turns.push(current);
+      if (turns.length) {
+        turns.forEach(turn => {
+          const div = document.createElement('div');
+          div.className = 'transcript-turn';
+          div.innerHTML = `
+            <div class="transcript-speaker ${turn.speaker}">${turn.speaker === 'student' ? 'Student' : 'CAiSEY'}</div>
+            <div class="transcript-text${turn.speaker === 'ai' ? ' ai-text' : ''}">${turn.text}</div>
+          `;
+          container.appendChild(div);
+        });
+      } else {
+        container.textContent = currentTranscript;
+      }
+    }
+
+    document.getElementById('instructorModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeInstructorModal() {
+    document.getElementById('instructorModal').style.display = 'none';
+    document.body.style.overflow = '';
+  }
+
+  function handleModalBackdrop(e) {
+    if (e.target === e.currentTarget) closeInstructorModal();
+  }
+
   // ── History ──────────────────────────────────────────────
   let activeFilter = 'all';
 
@@ -467,7 +631,7 @@ AI: [CAiSEY's message]"></textarea>
         });
         item.appendChild(reBtn);
       }
-      item.addEventListener('click', () => renderResults(entry.result, entry.id));
+      item.addEventListener('click', () => renderResults(entry.result, entry.id, entry.transcript || ''));
       list.appendChild(item);
     });
 
@@ -539,7 +703,8 @@ AI: [CAiSEY's message]"></textarea>
     }
   }
 
-  function renderResults(data, activeId) {
+  function renderResults(data, activeId, transcript = '') {
+    currentTranscript = transcript;
     const key = levelKey(data.domain_signal);
     document.getElementById('domainDot').className = `dot dot-lg dot-${key}`;
     document.getElementById('domainName').textContent = data.domain;
@@ -567,8 +732,12 @@ AI: [CAiSEY's message]"></textarea>
       explanation.id = `exp-${i}`;
       explanation.textContent = skill.explanation;
       summary.addEventListener('click', () => {
-        const open = explanation.classList.toggle('open');
-        document.getElementById(`chev-${i}`).classList.toggle('open', open);
+        if (instructorMode) {
+          openInstructorModal(skill);
+        } else {
+          const open = explanation.classList.toggle('open');
+          document.getElementById(`chev-${i}`).classList.toggle('open', open);
+        }
       });
       row.appendChild(summary);
       row.appendChild(explanation);
@@ -582,6 +751,7 @@ AI: [CAiSEY's message]"></textarea>
   // ── Init ──────────────────────────────────────────────────
   window.addEventListener('DOMContentLoaded', () => {
     renderSidebar(null);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeInstructorModal(); });
   });
 
   // ── Evaluate ──────────────────────────────────────────────
@@ -598,7 +768,7 @@ AI: [CAiSEY's message]"></textarea>
       const existing = getHistory().find(e => e.transcriptHash === hash);
       if (existing) {
         showInfo('You\'ve already evaluated this transcript — showing the previous result.');
-        renderResults(existing.result, existing.id);
+        renderResults(existing.result, existing.id, existing.transcript || transcript);
         return;
       }
     }
@@ -625,7 +795,7 @@ AI: [CAiSEY's message]"></textarea>
       const result = JSON.parse(clean);
       const duration = Math.round((Date.now() - start) / 1000);
       const id = saveToHistory(transcript, result, duration);
-      renderResults(result, id);
+      renderResults(result, id, transcript);
 
     } catch (e) {
       showError(e.message || 'Something went wrong. Check your API key and try again.');

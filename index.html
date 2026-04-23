@@ -35,27 +35,8 @@
       padding: 16px 28px;
       display: flex;
       align-items: center;
-      justify-content: space-between;
       gap: 12px;
     }
-    .instructor-toggle-wrap {
-      display: flex; align-items: center; gap: 8px;
-      cursor: pointer; user-select: none; flex-shrink: 0;
-    }
-    .instructor-toggle-label { font-size: 13px; font-weight: 600; color: var(--text-muted); }
-    .toggle-track {
-      width: 36px; height: 20px; border-radius: 10px;
-      background: var(--border); position: relative;
-      transition: background 0.2s; flex-shrink: 0;
-    }
-    .toggle-track.on { background: var(--accent); }
-    .toggle-thumb {
-      position: absolute; top: 3px; left: 3px;
-      width: 14px; height: 14px; border-radius: 50%;
-      background: #fff; transition: transform 0.2s;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
-    }
-    .toggle-track.on .toggle-thumb { transform: translateX(16px); }
     .header-logo {
       width: 36px; height: 36px;
       background: var(--accent);
@@ -209,14 +190,15 @@
 
     .domain-banner {
       padding: 26px; border-bottom: 1px solid var(--border-light);
-      display: flex; align-items: flex-start; gap: 16px;
+      display: flex; align-items: center; gap: 16px;
       background: linear-gradient(135deg, #F7F8FE 0%, var(--card-bg) 100%);
     }
+    .domain-banner-content { flex: 1; }
     .dot {
       border-radius: 50%; flex-shrink: 0;
       display: inline-block;
     }
-    .dot-lg  { width: 16px; height: 16px; margin-top: 4px; }
+    .dot-lg  { width: 16px; height: 16px; }
     .dot-sm  { width: 11px; height: 11px; }
 
     .dot-strong     { background: #16A34A; }
@@ -234,6 +216,15 @@
       letter-spacing: 0.7px; color: var(--text-muted); margin-bottom: 5px;
     }
     .domain-signal { font-size: 20px; font-weight: 700; color: var(--text-dark); letter-spacing: -0.3px; }
+
+    .instructor-view-btn {
+      font-size: 12px; font-weight: 600; color: var(--accent);
+      background: var(--accent-light); border: 1px solid #C7CDEE;
+      border-radius: 7px; padding: 7px 14px; cursor: pointer;
+      font-family: inherit; white-space: nowrap; flex-shrink: 0;
+      transition: background 0.12s;
+    }
+    .instructor-view-btn:hover { background: #D8DCF5; }
 
     .domain-summary {
       padding: 22px 26px; font-size: 15px; line-height: 1.7;
@@ -312,7 +303,7 @@
       background: var(--card-bg); border-radius: 16px;
       box-shadow: 0 24px 64px rgba(68,87,183,0.2);
       display: flex; overflow: hidden;
-      width: 100%; max-width: 980px; height: 78vh;
+      width: 100%; max-width: 1080px; height: 82vh;
       position: relative;
     }
     .modal-close {
@@ -326,22 +317,16 @@
     }
     .modal-close:hover { background: var(--border); color: var(--text-dark); }
     .modal-left {
-      width: 42%; flex-shrink: 0; padding: 32px 28px;
+      width: 52%; flex-shrink: 0;
       border-right: 1px solid var(--border); overflow-y: auto;
-      display: flex; flex-direction: column; gap: 18px;
     }
     .modal-right {
-      flex: 1; padding: 32px 28px; overflow-y: auto;
+      flex: 1; padding: 28px 32px; overflow-y: auto;
       display: flex; flex-direction: column; gap: 14px;
     }
-    .modal-skill-header { display: flex; align-items: flex-start; gap: 12px; }
-    .modal-dot-wrap { padding-top: 4px; }
-    .modal-skill-name { font-size: 18px; font-weight: 700; color: var(--text-dark); letter-spacing: -0.3px; }
-    .modal-skill-level { font-size: 13px; font-weight: 600; margin-top: 4px; }
-    .modal-explanation { font-size: 15px; line-height: 1.75; color: var(--text); }
     .modal-section-label {
       font-size: 11px; font-weight: 600; text-transform: uppercase;
-      letter-spacing: 0.7px; color: var(--text-muted);
+      letter-spacing: 0.7px; color: var(--text-muted); flex-shrink: 0;
     }
     .transcript-turn { margin-bottom: 14px; }
     .transcript-speaker {
@@ -357,16 +342,10 @@
 <body>
 
 <div class="header">
-  <div style="display:flex;align-items:center;gap:12px">
-    <div class="header-logo">C</div>
-    <div>
-      <span class="header-title">CAiSEY</span>
-      <span class="header-sub">Student Feedback</span>
-    </div>
-  </div>
-  <div class="instructor-toggle-wrap" onclick="toggleInstructorMode()">
-    <span class="instructor-toggle-label">Instructor View</span>
-    <div class="toggle-track" id="toggleTrack"><div class="toggle-thumb"></div></div>
+  <div class="header-logo">C</div>
+  <div>
+    <span class="header-title">CAiSEY</span>
+    <span class="header-sub">Student Feedback</span>
   </div>
 </div>
 
@@ -399,12 +378,13 @@ AI: [CAiSEY's message]"></textarea>
     <div id="results" class="results-card">
       <div class="domain-banner">
         <span class="dot dot-lg" id="domainDot"></span>
-        <div>
+        <div class="domain-banner-content">
           <div class="domain-label" id="domainName"></div>
           <div class="domain-signal">
             Session Snapshot: <span id="domainSignalText"></span>
           </div>
         </div>
+        <button class="instructor-view-btn" onclick="openInstructorView()">Instructor View</button>
       </div>
       <div class="domain-summary" id="domainSummary"></div>
       <div class="skills-header">Skills breakdown</div>
@@ -417,16 +397,7 @@ AI: [CAiSEY's message]"></textarea>
 <div class="instructor-modal" id="instructorModal" style="display:none" onclick="handleModalBackdrop(event)">
   <div class="instructor-panel">
     <button class="modal-close" onclick="closeInstructorModal()">✕</button>
-    <div class="modal-left">
-      <div class="modal-skill-header">
-        <div class="modal-dot-wrap"><span class="dot dot-sm" id="modalDot"></span></div>
-        <div>
-          <div class="modal-skill-name" id="modalSkillName"></div>
-          <div class="modal-skill-level" id="modalSkillLevel"></div>
-        </div>
-      </div>
-      <div class="modal-explanation" id="modalExplanation"></div>
-    </div>
+    <div class="modal-left" id="modalLeft"></div>
     <div class="modal-right">
       <div class="modal-section-label">Session Transcript</div>
       <div id="modalTranscript"></div>
@@ -435,27 +406,66 @@ AI: [CAiSEY's message]"></textarea>
 </div>
 
 <script>
-  // ── Instructor mode ───────────────────────────────────────
-  let instructorMode = false;
+  // ── Instructor view ───────────────────────────────────────
   let currentTranscript = '';
+  let currentResult = null;
 
-  function toggleInstructorMode() {
-    instructorMode = !instructorMode;
-    document.getElementById('toggleTrack').classList.toggle('on', instructorMode);
-    document.querySelectorAll('.skill-explanation.open').forEach(el => el.classList.remove('open'));
-    document.querySelectorAll('.chevron.open').forEach(el => el.classList.remove('open'));
-    if (!instructorMode) closeInstructorModal();
-  }
+  function openInstructorView() {
+    if (!currentResult) return;
+    const data = currentResult;
 
-  function openInstructorModal(skill) {
-    const sk = levelKey(skill.level);
-    document.getElementById('modalDot').className = `dot dot-sm dot-${sk}`;
-    document.getElementById('modalSkillName').textContent = skill.skill_name;
-    const lvl = document.getElementById('modalSkillLevel');
-    lvl.textContent = skill.level;
-    lvl.className = `modal-skill-level col-${sk}`;
-    document.getElementById('modalExplanation').textContent = skill.explanation;
+    // Build left panel (full domain card)
+    const left = document.getElementById('modalLeft');
+    left.innerHTML = '';
 
+    const key = levelKey(data.domain_signal);
+    const banner = document.createElement('div');
+    banner.className = 'domain-banner';
+    banner.style.borderRadius = '0';
+    banner.innerHTML = `
+      <span class="dot dot-lg dot-${key}"></span>
+      <div class="domain-banner-content">
+        <div class="domain-label">${data.domain || ''}</div>
+        <div class="domain-signal">Session Snapshot: <span class="col-${key}">${data.domain_signal}</span></div>
+      </div>
+    `;
+    left.appendChild(banner);
+
+    const summary = document.createElement('div');
+    summary.className = 'domain-summary';
+    summary.textContent = data.domain_summary;
+    left.appendChild(summary);
+
+    const skillsHdr = document.createElement('div');
+    skillsHdr.className = 'skills-header';
+    skillsHdr.textContent = 'Skills breakdown';
+    left.appendChild(skillsHdr);
+
+    (data.skills || []).forEach((skill, i) => {
+      const sk = levelKey(skill.level);
+      const row = document.createElement('div');
+      row.className = 'skill-row';
+      const skillSummary = document.createElement('div');
+      skillSummary.className = 'skill-summary';
+      skillSummary.innerHTML = `
+        <span class="dot dot-sm dot-${sk}"></span>
+        <span class="skill-name">${skill.skill_name}</span>
+        <span class="skill-level col-${sk}">${skill.level}</span>
+        <span class="chevron" id="mchev-${i}">▼</span>
+      `;
+      const exp = document.createElement('div');
+      exp.className = 'skill-explanation';
+      exp.textContent = skill.explanation;
+      skillSummary.addEventListener('click', () => {
+        const open = exp.classList.toggle('open');
+        document.getElementById(`mchev-${i}`).classList.toggle('open', open);
+      });
+      row.appendChild(skillSummary);
+      row.appendChild(exp);
+      left.appendChild(row);
+    });
+
+    // Build right panel (transcript)
     const container = document.getElementById('modalTranscript');
     container.innerHTML = '';
     if (!currentTranscript) {
@@ -705,6 +715,7 @@ AI: [CAiSEY's message]"></textarea>
 
   function renderResults(data, activeId, transcript = '') {
     currentTranscript = transcript;
+    currentResult = data;
     const key = levelKey(data.domain_signal);
     document.getElementById('domainDot').className = `dot dot-lg dot-${key}`;
     document.getElementById('domainName').textContent = data.domain;
@@ -732,12 +743,8 @@ AI: [CAiSEY's message]"></textarea>
       explanation.id = `exp-${i}`;
       explanation.textContent = skill.explanation;
       summary.addEventListener('click', () => {
-        if (instructorMode) {
-          openInstructorModal(skill);
-        } else {
-          const open = explanation.classList.toggle('open');
-          document.getElementById(`chev-${i}`).classList.toggle('open', open);
-        }
+        const open = explanation.classList.toggle('open');
+        document.getElementById(`chev-${i}`).classList.toggle('open', open);
       });
       row.appendChild(summary);
       row.appendChild(explanation);

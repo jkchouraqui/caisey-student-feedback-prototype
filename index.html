@@ -372,7 +372,6 @@ AI: [CAiSEY's message]"></textarea>
     <div class="error-box" id="errorBox" style="display:none"></div>
     <div class="info-box" id="infoBox" style="display:none">
       <span id="infoMsg"></span>
-      <button class="info-box-btn" onclick="runEvaluation(true)">Re-evaluate anyway</button>
     </div>
 
     <div id="results" class="results-card">
@@ -630,17 +629,6 @@ AI: [CAiSEY's message]"></textarea>
 
       item.appendChild(topicEl);
       item.appendChild(bottom);
-      if (entry.transcript) {
-        const reBtn = document.createElement('button');
-        reBtn.className = 'history-reeval';
-        reBtn.textContent = '↻ Re-evaluate';
-        reBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          document.getElementById('transcript').value = entry.transcript;
-          runEvaluation(true);
-        });
-        item.appendChild(reBtn);
-      }
       item.addEventListener('click', () => renderResults(entry.result, entry.id, entry.transcript || ''));
       list.appendChild(item);
     });
@@ -762,7 +750,7 @@ AI: [CAiSEY's message]"></textarea>
   });
 
   // ── Evaluate ──────────────────────────────────────────────
-  async function runEvaluation(force = false) {
+  async function runEvaluation() {
     const transcript = document.getElementById('transcript').value.trim();
 
     showError('');
@@ -770,14 +758,12 @@ AI: [CAiSEY's message]"></textarea>
     if (!transcript) { showError('Please paste a transcript first.'); return; }
 
     // Duplicate check
-    if (!force) {
-      const hash = hashString(transcript.trim());
-      const existing = getHistory().find(e => e.transcriptHash === hash);
-      if (existing) {
-        showInfo('You\'ve already evaluated this transcript — showing the previous result.');
-        renderResults(existing.result, existing.id, existing.transcript || transcript);
-        return;
-      }
+    const hash = hashString(transcript.trim());
+    const existing = getHistory().find(e => e.transcriptHash === hash);
+    if (existing) {
+      showInfo('You\'ve already evaluated this transcript — showing the previous result.');
+      renderResults(existing.result, existing.id, existing.transcript || transcript);
+      return;
     }
 
     setLoading(true);

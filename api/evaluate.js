@@ -94,7 +94,25 @@ export default async function handler(req, res) {
       return res.status(response.status).json({ error: data.error?.message || 'API error' });
     }
 
-    return res.status(200).json(data);
+    const text = data.content?.[0]?.text;
+    if (!text) return res.status(200).json(data);
+
+    let parsed;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      return res.status(200).json(data);
+    }
+
+    const SKILL_NAMES = ['Use of Evidence', 'Depth of Reasoning', 'Logical Soundness'];
+    if (Array.isArray(parsed.skills)) {
+      parsed.skills = parsed.skills.map((skill, i) => ({
+        ...skill,
+        skill_name: SKILL_NAMES[i] ?? skill.skill_name,
+      }));
+    }
+
+    return res.status(200).json({ ...data, content: [{ type: 'text', text: JSON.stringify(parsed) }] });
   } catch (e) {
     return res.status(500).json({ error: e.message || 'Something went wrong' });
   }

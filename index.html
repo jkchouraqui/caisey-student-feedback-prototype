@@ -247,6 +247,41 @@
     .skill-explanation.open { display: block; }
 
     #results { display: none; }
+
+    .sidebar-filters {
+      display: flex; gap: 5px; flex-wrap: wrap;
+      padding: 0 2px 10px;
+    }
+    .filter-chip {
+      font-size: 11px; font-weight: 600;
+      padding: 3px 9px; border-radius: 20px;
+      border: 1px solid var(--border);
+      background: var(--card-bg); color: var(--text-muted);
+      cursor: pointer; transition: all 0.12s;
+      font-family: inherit;
+    }
+    .filter-chip:hover { border-color: var(--accent); color: var(--accent); }
+    .filter-chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    .history-reeval {
+      margin-top: 8px;
+      font-size: 11px; font-weight: 600;
+      color: var(--accent); background: none;
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 3px 10px; cursor: pointer; font-family: inherit;
+      transition: background 0.12s, border-color 0.12s;
+      display: inline-block;
+    }
+    .history-reeval:hover { background: var(--accent-light); border-color: var(--accent); }
+
+    .clear-history {
+      display: block; margin-top: 12px;
+      font-size: 11px; font-weight: 600; color: var(--text-muted);
+      background: none; border: none; cursor: pointer;
+      font-family: inherit; padding: 0 2px;
+      transition: color 0.12s;
+    }
+    .clear-history:hover { color: #B91C1C; }
   </style>
 </head>
 <body>
@@ -263,6 +298,7 @@
 
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">History</div>
+    <div class="sidebar-filters" id="sidebarFilters"></div>
     <div id="historyList"></div>
   </aside>
 
@@ -304,6 +340,15 @@ AI: [CAiSEY's message]"></textarea>
 
 <script>
   // ── History ──────────────────────────────────────────────
+  let activeFilter = 'all';
+
+  const FILTERS = [
+    { label: 'All',        value: 'all' },
+    { label: 'Strong',     value: 'strong' },
+    { label: 'Developing', value: 'developing' },
+    { label: 'Needs Work', value: 'needs-work' },
+  ];
+
   function hashString(str) {
     let h = 5381;
     for (let i = 0; i < str.length; i++) { h = ((h << 5) + h) + str.charCodeAt(i); h |= 0; }
@@ -334,6 +379,7 @@ AI: [CAiSEY's message]"></textarea>
       topic: result.topic || 'Untitled session',
       signal: result.domain_signal,
       transcriptHash: hashString(transcript.trim()),
+      transcript: transcript.trim(),
       duration, result
     };
     history.unshift(entry);
@@ -341,13 +387,35 @@ AI: [CAiSEY's message]"></textarea>
     return entry.id;
   }
 
+  function renderFilters(activeId) {
+    const container = document.getElementById('sidebarFilters');
+    container.innerHTML = '';
+    FILTERS.forEach(f => {
+      const btn = document.createElement('button');
+      btn.className = 'filter-chip' + (activeFilter === f.value ? ' active' : '');
+      btn.textContent = f.label;
+      btn.addEventListener('click', () => { activeFilter = f.value; renderSidebar(activeId); });
+      container.appendChild(btn);
+    });
+  }
+
   function renderSidebar(activeId) {
-    const history = getHistory();
+    const allHistory = getHistory();
     const sidebar = document.getElementById('sidebar');
     const list = document.getElementById('historyList');
-    if (!history.length) { sidebar.classList.remove('visible'); return; }
+    if (!allHistory.length) { sidebar.classList.remove('visible'); return; }
     sidebar.classList.add('visible');
+    renderFilters(activeId);
+    const history = activeFilter === 'all'
+      ? allHistory
+      : allHistory.filter(e => levelKey(e.signal) === activeFilter);
     list.innerHTML = '';
+    if (!history.length) {
+      const empty = document.createElement('div');
+      empty.style.cssText = 'font-size:12px;color:var(--text-muted);padding:4px 2px';
+      empty.textContent = 'No sessions match this filter.';
+      list.appendChild(empty);
+    }
     history.forEach(entry => {
       const key = levelKey(entry.signal);
       const durLabel = entry.duration != null ? `· ${entry.duration}s` : '';
@@ -388,9 +456,33 @@ AI: [CAiSEY's message]"></textarea>
 
       item.appendChild(topicEl);
       item.appendChild(bottom);
+      if (entry.transcript) {
+        const reBtn = document.createElement('button');
+        reBtn.className = 'history-reeval';
+        reBtn.textContent = '↻ Re-evaluate';
+        reBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          document.getElementById('transcript').value = entry.transcript;
+          runEvaluation(true);
+        });
+        item.appendChild(reBtn);
+      }
       item.addEventListener('click', () => renderResults(entry.result, entry.id));
       list.appendChild(item);
     });
+
+    const clearBtn = document.createElement('button');
+    clearBtn.className = 'clear-history';
+    clearBtn.textContent = 'Clear history';
+    clearBtn.addEventListener('click', () => {
+      if (confirm('Clear all history? This cannot be undone.')) {
+        localStorage.removeItem('caisey_history');
+        activeFilter = 'all';
+        sidebar.classList.remove('visible');
+        document.getElementById('results').style.display = 'none';
+      }
+    });
+    list.appendChild(clearBtn);
   }
 
   // ── Timer ─────────────────────────────────────────────────

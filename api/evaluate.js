@@ -110,12 +110,19 @@ export default async function handler(req, res) {
     }
 
     const SKILL_NAMES = ['Use of Evidence', 'Depth of Reasoning', 'Logical Soundness'];
-    if (Array.isArray(parsed.skills)) {
-      parsed.skills = parsed.skills.map((skill, i) => ({
-        ...skill,
-        skill_name: SKILL_NAMES[i] ?? skill.skill_name,
-      }));
-    }
+
+    // Ensure all 3 skills are always present
+    const existingSkills = Array.isArray(parsed.skills) ? parsed.skills : [];
+    parsed.skills = SKILL_NAMES.map((name, i) => {
+      const found = existingSkills[i] || existingSkills.find(s => s.skill_name === name);
+      if (found) return { ...found, skill_name: name };
+      // Fill in any missing skill with a safe fallback
+      return {
+        skill_name: name,
+        level: 'Not Demonstrated This Session',
+        explanation: "This skill wasn't part of your conversation this time — try incorporating it in your next session.",
+      };
+    });
 
     return res.status(200).json({ ...data, content: [{ type: 'text', text: JSON.stringify(parsed) }] });
   } catch (e) {

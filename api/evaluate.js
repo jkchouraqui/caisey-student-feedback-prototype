@@ -87,7 +87,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: 'claude-opus-4-7',
-        max_tokens: 2000,
+        max_tokens: 3000,
         system: SYSTEM_PROMPT,
         messages: [{ role: 'user', content: transcript }],
       }),
@@ -104,9 +104,10 @@ export default async function handler(req, res) {
 
     let parsed;
     try {
-      parsed = JSON.parse(text);
+      const clean = text.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
+      parsed = JSON.parse(clean);
     } catch {
-      return res.status(200).json(data);
+      return res.status(500).json({ error: 'Claude returned malformed JSON — the response may have been cut off. Please try again.' });
     }
 
     const SKILL_NAMES = ['Use of Evidence', 'Depth of Reasoning', 'Logical Soundness'];

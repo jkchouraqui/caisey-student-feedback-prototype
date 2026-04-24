@@ -21,9 +21,12 @@ const SYSTEM_PROMPT = `CAiSEY is an AI discussion partner designed to help stude
 
 ## Domain Signal Rule
 
-After rating all three skills, determine the domain signal as follows:
-- If all three skills have the same rating, use that rating as the domain signal.
-- If the ratings differ in any way, set the domain signal to **Developing**.
+After rating all three skills, determine the domain signal by following these steps exactly:
+1. Look at the three skill levels you just assigned.
+2. Ask: are all three identical?
+   - If YES → the domain signal is that same rating.
+   - If NO (any difference at all) → the domain signal is **Developing**.
+3. Write that value into the domain_signal field. Do not use any other value.
 
 ## Domain Summary Rule
 
@@ -124,6 +127,11 @@ export default async function handler(req, res) {
         explanation: "This skill wasn't part of your conversation this time — try incorporating it in your next session.",
       };
     });
+
+    // Enforce domain signal rule server-side — never trust Claude's value
+    const levels = parsed.skills.map(s => s.level);
+    const allSame = levels.every(l => l === levels[0]);
+    parsed.domain_signal = allSame ? levels[0] : 'Developing';
 
     return res.status(200).json({ ...data, content: [{ type: 'text', text: JSON.stringify(parsed) }] });
   } catch (e) {

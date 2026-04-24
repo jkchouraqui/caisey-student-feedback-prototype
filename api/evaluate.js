@@ -15,7 +15,7 @@ const SYSTEM_PROMPT = `CAiSEY is an AI discussion partner designed to help stude
 
 | Skill | Strong | Developing | Needs Work | Not Demonstrated |
 |---|---|---|---|---|
-| **Use of Evidence** | Consistently supports claims with relevant, specific real-world examples such as named companies, data points, case studies, or events that clearly strengthen the argument. | Provides at least one real-world example such as a named company, specific event, or data point to support a claim, though it may be underdeveloped or not fully connected to the argument. | Uses illustrative analogies or hypothetical scenarios but never grounds claims in real-world examples such as named companies, specific events, or actual data. | Makes no attempt to support claims with any evidence or examples — responses consist entirely of assertions with no grounding of any kind. |
+| **Use of Evidence** | Consistently supports claims with specific, real-world examples, such as named companies, data points, case studies, or documented historical events closely relevant to the argument. | Provides at least one specific, real-world example (e.g., a named organization, historical program, actual data point, or directly described case study), though the connection to the argument may be vague or underdeveloped. | Supports claims only with general statements, hypothetical scenarios, or analogies, but does not reference any specific, real-world examples, data, or events. Responses remain entirely at the level of theory or possibility. | Makes no attempt to support claims with any form of evidence, not even with analogies or hypotheticals—responses are simple assertions with no illustration or support. |
 | **Depth of Reasoning** | Explores implications, mechanisms, trade-offs, or causes in detail — goes beyond the initial claim to examine what it means, why it holds, or what it leads to, demonstrating thorough understanding of the topic. | Advances the argument by introducing new angles or connections, but stops short of fully exploring where they lead or what they would require. | Reasoning is mostly superficial or simplistic — relies on restatement or general assertions without exploring complexity or broader implications. | Does not demonstrate depth of reasoning in this session. |
 | **Logical Soundness** *(Debate only)* | Best reasoning moment contains a claim, evidence, and an explicit reason (the "bridge") — the listener does not need to supply their own intuition or industry knowledge to understand why or how the reason supports the claim. | Best moment shows a clear claim and a relevant reason, but the "bridge" between them is implicit — the listener understands the point but must supply the final how/why reasoning themselves. | Claims are made without supporting reasons, or reasons provided are non-sequiturs that don't logically relate to the claim — even at their best, the logic requires the listener to guess the intended connection. | Does not produce reasoning that connects a claim to a supporting reason in this session. |
 
@@ -113,14 +113,12 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Claude returned malformed JSON — the response may have been cut off. Please try again.' });
     }
 
-    const SKILL_NAMES = ['Use of Evidence', 'Depth of Reasoning', 'Logical Soundness'];
-
     // Ensure all 3 skills are always present
+    const SKILL_NAMES = ['Use of Evidence', 'Depth of Reasoning', 'Logical Soundness'];
     const existingSkills = Array.isArray(parsed.skills) ? parsed.skills : [];
     parsed.skills = SKILL_NAMES.map((name, i) => {
       const found = existingSkills[i] || existingSkills.find(s => s.skill_name === name);
       if (found) return { ...found, skill_name: name };
-      // Fill in any missing skill with a safe fallback
       return {
         skill_name: name,
         level: 'Not Demonstrated This Session',
